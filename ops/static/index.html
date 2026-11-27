@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Asisten Operasional</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Lewati ke konten</a>
+    <header class="topbar">
+      <div class="shell header-inner">
+        <a class="brand" href="/" aria-label="Asisten Operasional, beranda">
+          <span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i></span>
+          Asisten Operasional
+        </a>
+        <nav aria-label="Navigasi utama">
+          <a href="#ringkasan">Dasbor</a>
+          <a href="#prompt-bank">Bank prompt</a>
+          <a href="#workflow">Alur kerja</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="shell" id="main">
+      <section id="ringkasan" aria-labelledby="dashboard-title">
+        <div class="section-head">
+          <div>
+            <span class="tag">Data sintetis</span>
+            <h1 id="dashboard-title">Ringkasan operasional</h1>
+            <p class="intro">Telusuri penjualan, stok, dan pembacaan sensor dari tiga lokasi.</p>
+          </div>
+          <div class="exports" aria-label="Dokumen operasional">
+            <a class="button secondary" href="/status">Laporan status</a>
+            <a class="button secondary" href="/briefing">Paparan operasi</a>
+          </div>
+        </div>
+
+        <form class="panel filters" id="filter-form" aria-label="Filter dasbor">
+          <label>Lokasi
+            <select id="site" name="site">
+              <option>Semua</option><option>Barat</option><option>Tengah</option><option>Timur</option>
+            </select>
+          </label>
+          <label>Tanggal mulai
+            <input type="date" id="start" name="start" value="2026-08-31" required>
+          </label>
+          <label>Tanggal akhir
+            <input type="date" id="end" name="end" value="2026-11-22" required>
+          </label>
+          <button type="submit">Terapkan filter</button>
+        </form>
+        <p id="dashboard-status" class="status" role="status"></p>
+
+        <dl class="metrics" aria-label="Metrik untuk filter aktif">
+          <div class="panel"><dt>Total penjualan</dt><dd id="metric-sales">—</dd></div>
+          <div class="panel"><dt>Catatan lokasi-hari</dt><dd id="metric-days">—</dd></div>
+          <div class="panel"><dt>Selisih stok absolut</dt><dd id="metric-stock">—</dd></div>
+          <div class="panel"><dt>Rata-rata pembacaan sensor</dt><dd id="metric-sensor">—</dd></div>
+        </dl>
+
+        <section class="panel chart-panel" aria-labelledby="trend-title">
+          <div class="chart-head">
+            <h2 id="trend-title">Tren mingguan</h2>
+            <label>Metrik
+              <select id="chart-metric">
+                <option value="sales">Penjualan (unit)</option>
+                <option value="stock_gap">Selisih stok absolut (unit)</option>
+                <option value="avg_sensor">Rata-rata pembacaan sensor</option>
+              </select>
+            </label>
+          </div>
+          <div id="trend" class="chart" aria-label="Nilai setiap minggu"></div>
+        </section>
+
+        <div class="report-grid">
+          <section class="panel padded" aria-labelledby="signals-title">
+            <h2 id="signals-title">Temuan anomali</h2>
+            <div class="table-scroll" tabindex="0" role="region" aria-label="Temuan anomali">
+              <table>
+                <thead><tr><th scope="col">Sumber</th><th scope="col">Tanggal</th><th scope="col">Lokasi</th><th scope="col">Temuan</th><th scope="col">Nilai</th><th scope="col">Acuan</th></tr></thead>
+                <tbody id="signals"></tbody>
+              </table>
+            </div>
+            <p id="source-record" class="status" role="status"></p>
+          </section>
+          <section class="panel padded" aria-labelledby="quality-title">
+            <h2 id="quality-title">Kualitas data</h2>
+            <ul id="quality" class="plain-list"></ul>
+            <details class="distribution">
+              <summary>Distribusi catatan harian</summary>
+              <ul id="distribution" class="plain-list"></ul>
+            </details>
+          </section>
+        </div>
+      </section>
+
+      <section id="prompt-bank" aria-labelledby="prompts-title">
+        <h2 id="prompts-title" class="section-title">Bank prompt</h2>
+        <div class="prompt-grid">
+          <div class="panel padded">
+            <label for="prompt-search">Cari prompt</label>
+            <input id="prompt-search" type="search" placeholder="Misalnya ringkasan atau stok">
+            <div id="prompt-list" class="prompt-list"></div>
+            <p id="prompt-status" class="status" role="status"></p>
+          </div>
+          <div class="panel padded">
+            <h3>Buat draf</h3>
+            <form id="draft-form">
+              <label>Tugas
+                <select name="prompt" id="task" required>
+                  <option value="">Pilih prompt</option>
+                </select>
+              </label>
+              <label>Sumber temuan
+                <select name="source" id="draft-source">
+                  <option value="">Semua bukti dalam filter aktif</option>
+                </select>
+              </label>
+              <label>Arahan tambahan
+                <textarea name="brief" rows="3" maxlength="1000" placeholder="Misalnya, jelaskan temuan utama untuk rapat mingguan."></textarea>
+              </label>
+              <p id="draft-scope" class="note">Draf memakai filter dasbor yang aktif.</p>
+              <button id="draft-submit" type="submit" disabled>Buat draf</button>
+            </form>
+            <p id="draft-status" class="status" role="status"></p>
+            <div id="draft-result" hidden>
+              <h4>Hasil untuk ditinjau</h4>
+              <p class="note">Periksa angka dan kesimpulan dengan sumber di bawah.</p>
+              <pre id="draft-output"></pre>
+              <h4>Sumber data</h4>
+              <ul id="draft-evidence" class="plain-list"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" aria-labelledby="workflow-title">
+        <div class="section-head workflow-head">
+          <div>
+            <h2 class="section-title" id="workflow-title">Tindak lanjut operasi</h2>
+            <p class="note">Penugasan contoh menggunakan data sintetis.</p>
+          </div>
+        </div>
+        <p id="workflow-status" class="status" role="status"></p>
+        <div class="workflow-grid">
+          <section class="panel padded" aria-labelledby="requests-title">
+            <h3 id="requests-title">Permintaan dan serah terima</h3>
+            <ul class="plain-list" id="requests"></ul>
+          </section>
+          <section class="panel padded" aria-labelledby="risks-title">
+            <h3 id="risks-title">Daftar risiko</h3>
+            <ul class="plain-list" id="risks"></ul>
+          </section>
+          <section class="panel padded" aria-labelledby="programs-title">
+            <h3 id="programs-title">Pemantauan program</h3>
+            <ul class="plain-list" id="programs"></ul>
+          </section>
+          <section class="panel padded" aria-labelledby="escalation-title">
+            <h3 id="escalation-title">Draf eskalasi untuk HSE</h3>
+            <div id="escalation"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
